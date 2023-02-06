@@ -30,7 +30,7 @@ void setup()
   nicla::leds.begin();
   nicla::enableCharge(100);
 
-  BHY2.begin();
+  BHY2.begin(NICLA_I2C);
 
   drv.begin();
   drv.selectLibrary(1);
