@@ -1,0 +1,73 @@
+/* 
+ * This sketch shows is based on the Nicla Standalone example.
+ * Without the need for an host, nicla can run sketches that 
+ * are able to configure the bhi sensors and are able to read all 
+ * the bhi sensors data.
+ * This implements the light for showing that the board is on.
+*/
+
+#include "Arduino.h"
+#include "Arduino_BHY2.h"
+#include "Nicla_System.h"
+#include "Wire.h"                // library to use i2c comm
+#include "Adafruit_DRV2605.h"    // haptic driver
+
+Adafruit_DRV2605 drv;
+//SensorXYZ accel(SENSOR_ID_ACC);
+//SensorXYZ gyro(SENSOR_ID_GYRO);
+Sensor temp(SENSOR_ID_TEMP);
+//Sensor gas(SENSOR_ID_GAS);
+//SensorQuaternion rotation(SENSOR_ID_RV);
+
+float lastTemp = 0;
+
+void setup()
+{
+  Serial.begin(115200);
+  while(!Serial);
+
+  nicla::begin();
+  nicla::leds.begin();
+  nicla::enableCharge(100);
+
+  BHY2.begin();
+
+  drv.begin();
+  drv.selectLibrary(1);
+  // I2C trigger by sending 'go' command 
+  // default, internal trigger when sending GO command
+  drv.setMode(DRV2605_MODE_INTTRIG);
+
+  //accel.begin();
+  //gyro.begin();
+  temp.begin();
+  //gas.begin();
+  //rotation.begin();
+}
+
+void loop()
+{
+  nicla::leds.setColor(green);
+  
+   
+  // First data pull
+  BHY2.update();
+  lastTemp = temp.value();
+  delay(1000);
+
+  //Second data pull
+  BHY2.update();
+  Serial.println(String("1st-read: ") + String(lastTemp));
+  Serial.println(String("2nd-read: ") + String(temp.value(),3));
+  
+  if (temp.value() > lastTemp){
+    Serial.println("loop");
+    // set the effect to play"
+    drv.setWaveform(0, 14);  // play effect 
+    drv.setWaveform(1, 0);   // end waveform
+    // play the effect!
+    drv.go();
+  }
+
+  delay(1000);
+}
