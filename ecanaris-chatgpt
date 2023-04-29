@@ -1,0 +1,36 @@
+import gspread
+import json
+import openai
+
+# Authenticate and open the spreadsheet
+credentials = {"installed":{"client_id":"345800648337-s65i0o0ruqpls28holc5aj4s0dsjn9ad.apps.googleusercontent.com","project_id":"biodata-babygaia","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost"]}}
+authorized_user = {"refresh_token": "1//09HU1IecUDDXSCgYIARAAGAkSNgF-L9IrjYQyLAdSUg7tEMHap8NcWLvfz_hYzTdc0f--EpZxh_UsJpkzvHJsInrvCefBSOFxGg", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "345800648337-s65i0o0ruqpls28holc5aj4s0dsjn9ad.apps.googleusercontent.com", "client_secret": "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", "scopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"], "expiry": "2023-04-22T22:31:34.334165Z"}
+gc, authorized_user = gspread.oauth_from_dict(credentials, authorized_user)
+sh = gc.open("ESP")
+worksheet = sh.sheet1
+
+# Get the last row of the worksheet
+last_row = worksheet.row_count
+
+# Get the values in the last row
+time, sensor1, sensor2, pressure, humidity, temperature, gas = worksheet.row_values(last_row)
+
+# Create a string with the values
+input_text = f"ChatGPT I want you to roleplay a plant, {sensor1} is measuring the electrical conductivity of its roots in a scale that goes from 0 to 4095 . {sensor2} is also the value of electrical conductivity of it roots in milivoltage. Its environment is characterized by pressure: {pressure}, humidity: {humidity}, temperature: {temperature} (in Celcius), and gas is {gas}. The time right now is {time}. If you were this plant, what would you have to say about how you're feeling?"
+
+# Set up the OpenAI API client with your API key
+openai.api_key = "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"
+
+# Use the OpenAI API to analyze the data
+response = openai.Completion.create(
+    engine="text-davinci-002",
+    prompt=input_text,
+    max_tokens=1024,
+    temperature=0.5,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0,
+)
+
+# Print the results
+print(response.choices[0].text)
